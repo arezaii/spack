@@ -10,7 +10,7 @@ from spack.package import *
 from spack.util.environment import path_put_first, set_env
 
 
-class Chapel(AutotoolsPackage, ROCmPackage):
+class Chapel(AutotoolsPackage):
     """Chapel is a modern programming language that is parallel, productive,
     portable, scalable and open-source."""
 
@@ -410,6 +410,7 @@ class Chapel(AutotoolsPackage, ROCmPackage):
         depends_on(dep, when="package_modules={0}".format(opt), type=("run", "build", "link"))
         depends_on(dep, when="package_modules=all", type=("run", "build", "link"))
 
+    # TODO: Make this work again, don't require with amd gpus since we'll use llvm-amdgpu
     # depends_on("llvm@14:16", when="llvm=spack")
 
     depends_on("llvm@15", when="locale_model=gpu llvm=spack gpu=nvidia ^cuda@12:")
@@ -429,10 +430,7 @@ class Chapel(AutotoolsPackage, ROCmPackage):
     with when("gpu=amd"):
         depends_on("llvm-amdgpu@4:5.4", type=("build", "link", "run"))
         depends_on("hsa-rocr-dev@4:5.4~image", type=("build", "link", "run"))
-        # depends_on("rocm-device-libs@4:5.4", type=("build", "link", "run"))
         depends_on("hip@4:5.4", type=("build", "link", "run"))
-        depends_on("hipcub@4:5.4", type=("build", "link", "run"))
-        # depends_on("hwloc+rocm", type=("build", "link", "run"))
 
     depends_on("python@3.7:3.10")
     depends_on("cmake@3.16:")
@@ -503,12 +501,11 @@ class Chapel(AutotoolsPackage, ROCmPackage):
         if self.spec.variants["gpu"].value == "nvidia":
             # TODO: why must we add to LD_LIBRARY_PATH to find libcudart?
             env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix.lib64)
-        if self.spec.variants["gpu"].value == "amd":
+        elif self.spec.variants["gpu"].value == "amd":
             env.set(
                 "CHPL_LLVM_CONFIG",
                 "{0}/{1}".format(self.spec["llvm-amdgpu"].prefix, "bin/llvm-config"),
             )
-            env.prepend_path("CPATH", self.spec["llvm-amdgpu"].prefix.include)
             env.set("CHPL_ROCM_PATH", self.spec["llvm-amdgpu"].prefix)
             env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix.lib)
             env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
