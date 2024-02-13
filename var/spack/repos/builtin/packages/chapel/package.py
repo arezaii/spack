@@ -10,7 +10,7 @@ from spack.package import *
 from spack.util.environment import path_put_first, set_env
 
 
-class Chapel(AutotoolsPackage):
+class Chapel(AutotoolsPackage, ROCmPackage):
     """Chapel is a modern programming language that is parallel, productive,
     portable, scalable and open-source."""
 
@@ -118,7 +118,7 @@ class Chapel(AutotoolsPackage):
     variant(
         "comm_substrate",
         default="unset",
-        description="Build Chapel with mulit-locale support using the "
+        description="Build Chapel with multi-locale support using the "
         "supplied CHPL_COMM_SUBSTRATE",
         values=("ibv", "ofi", "udp", "unset"),
         multi=False,
@@ -410,7 +410,7 @@ class Chapel(AutotoolsPackage):
         depends_on(dep, when="package_modules={0}".format(opt), type=("run", "build", "link"))
         depends_on(dep, when="package_modules=all", type=("run", "build", "link"))
 
-    depends_on("llvm@14:16", when="llvm=spack")
+    # depends_on("llvm@14:16", when="llvm=spack")
 
     depends_on("llvm@15", when="locale_model=gpu llvm=spack gpu=nvidia ^cuda@12:")
 
@@ -427,10 +427,12 @@ class Chapel(AutotoolsPackage):
 
     # TODO: AMD support is not yet working
     with when("gpu=amd"):
-        depends_on("hsa-rocr-dev@4:5.4", type=("build", "link", "run"))
-        depends_on("hip@4:5.4", type=("build", "link", "run"))
+        depends_on("llvm-amdgpu@4:5.4", type=("build", "link", "run"))
+        depends_on("hsa-rocr-dev@4:5.4~image", type=("build", "link", "run"))
         # depends_on("rocm-device-libs@4:5.4", type=("build", "link", "run"))
-        # depends_on("llvm-amdgpu@4:5.4", type=("build", "link", "run"))
+        depends_on("hip@4:5.4", type=("build", "link", "run"))
+        depends_on("hipcub@4:5.4", type=("build", "link", "run"))
+        # depends_on("hwloc+rocm", type=("build", "link", "run"))
 
     depends_on("python@3.7:3.10")
     depends_on("cmake@3.16:")
@@ -443,19 +445,25 @@ class Chapel(AutotoolsPackage):
     def configure(self, spec, prefix):
         configure("--prefix={0}".format(prefix))
 
-    def setup_chpl_comm(self, env, spec):
-        env.set("CHPL_COMM", spec.variants["comm"].value)
-        if spec.variants["comm_substrate"].value != "none":
-            env.set("CHPL_COMM_SUBSTRATE", spec.variants["comm_substrate"].value)
+    # def setup_chpl_comm(self, env, spec):
+    #     env.set("CHPL_COMM", spec.variants["comm"].value)
+    #     if spec.variants["comm_substrate"].value != "unset":
+    #         env.set("CHPL_COMM_SUBSTRATE", spec.variants["comm_substrate"].value)
 
     def setup_chpl_llvm(self, env):
         if self.spec.variants["llvm"].value == "spack":
-            env.set(
-                "CHPL_LLVM_CONFIG", "{0}/{1}".format(self.spec["llvm"].prefix, "bin/llvm-config")
-            )
-            env.set("CHPL_LLVM", "system")
-        else:
-            env.set("CHPL_LLVM", self.spec.variants["llvm"].value)
+            if self.spec.variants["gpu"].value == "amd":
+                env.set(
+                    "CHPL_LLVM_CONFIG",
+                    "{0}/{1}".format(self.spec["llvm-amdgpu"].prefix, "bin/llvm-config"),
+                )
+            else:
+                env.set(
+                    "CHPL_LLVM_CONFIG", "{0}/{1}".format(self.spec["llvm"].prefix, "bin/llvm-config")
+                )
+            # env.set("CHPL_LLVM", "system")
+        # else:
+        #     env.set("CHPL_LLVM", self.spec.variants["llvm"].value)
 
     def setup_if_not_unset(self, env, var, value):
         if value != "unset":
@@ -496,15 +504,12 @@ class Chapel(AutotoolsPackage):
             # TODO: why must we add to LD_LIBRARY_PATH to find libcudart?
             env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix.lib64)
         if self.spec.variants["gpu"].value == "amd":
-            if self.spec.variants["rocm"].value:
-                env.set(
-                    "CHPL_LLVM_CONFIG",
-                    "{0}/{1}".format(self.spec["llvm-amdgpu"].prefix, "bin/llvm-config"),
-                )
-                env.prepend_path("CPATH", self.spec["hip"].prefix.include)
-                env.set("CHPL_ROCM_PATH", self.spec["hip"].prefix.bin)
-
-        self.setup_chpl_comm(env, self.spec)
+            env.set(
+                "CHPL_LLVM_CONFIG",
+                "{0}/{1}".format(self.spec["llvm-amdgpu"].prefix, "bin/llvm-config"),
+            )
+            env.prepend_path("CPATH", self.spec["hip"].prefix.include)
+            env.set("CHPL_ROCM_PATH", self.spec["hip"].prefix)
 
     def setup_build_environment(self, env):
         self.unset_chpl_env_vars(env)
