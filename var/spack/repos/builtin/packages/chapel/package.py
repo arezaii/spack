@@ -508,8 +508,10 @@ class Chapel(AutotoolsPackage, ROCmPackage):
                 "CHPL_LLVM_CONFIG",
                 "{0}/{1}".format(self.spec["llvm-amdgpu"].prefix, "bin/llvm-config"),
             )
-            env.prepend_path("CPATH", self.spec["hip"].prefix.include)
-            env.set("CHPL_ROCM_PATH", self.spec["hip"].prefix)
+            env.prepend_path("CPATH", self.spec["llvm-amdgpu"].prefix.include)
+            env.set("CHPL_ROCM_PATH", self.spec["llvm-amdgpu"].prefix)
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix.lib)
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
 
     def setup_build_environment(self, env):
         self.unset_chpl_env_vars(env)
