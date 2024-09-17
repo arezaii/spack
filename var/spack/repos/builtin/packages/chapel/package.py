@@ -442,6 +442,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "+rocm", when="@:1", msg="ROCm support in spack requires Chapel 2.0.0 or later"
     )
     # Chapel restricts the allowable ROCm versions
+    # TODO: 2.2 - how to specify v4-5.4 OR v6-6.2? (just drop the old ones since they're deprecated?)
     with when("+rocm"):
         depends_on("hsa-rocr-dev@4:5.4")
         depends_on("hip@4:5.4")
@@ -502,6 +503,11 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "^llvm targets=all",
         msg="llvm=spack +cuda requires LLVM support the nvptx target",
         when="llvm=spack +cuda",
+    )
+    requires(
+        "llvm=bundled",
+        msg="ROCm support for v6.0 and above requires bundled LLVM",
+        when="+rocm ^rocm@6:",
     )
 
     # This is because certain systems have binutils installed as a system package
