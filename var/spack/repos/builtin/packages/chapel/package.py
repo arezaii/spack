@@ -550,6 +550,11 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("gasnet@2024.5.0: conduits=none", when="@2.1.0: gasnet=spack")
 
     extends("python", when="+python-bindings")
+    requires(
+        "%clang",
+        "%apple-clang",
+        when="+python-bindings",
+        policy="one_of")
 
     depends_on("python@3.7:")
     depends_on("cmake@3.16:")
