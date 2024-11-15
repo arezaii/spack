@@ -815,14 +815,13 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def setup_run_environment(self, env):
         self.setup_env_vars(env)
-        env.prepend_path(
-            "PATH", join_path(self.prefix.share, "chapel", self._output_version_short, "util")
+        chpl_home = join_path(self.prefix.share, "chapel", self._output_version_short)
+        env.prepend_path("PATH", join_path(chpl_home, "util"))
+        env.set(
+            "CHPL_MAKE_THIRD_PARTY",
+            join_path(self.prefix.lib, "chapel", self._output_version_short),
         )
-        if self.spec.satisfies("+python-bindings"):
-            env.set(
-                "CHPL_HOME",
-                join_path(self.spec.prefix.share, "chapel", self._output_version_short),
-            )
+        env.set("CHPL_HOME", chpl_home)
 
     @property
     @llnl.util.lang.memoized
