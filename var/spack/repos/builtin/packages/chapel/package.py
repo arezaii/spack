@@ -559,9 +559,9 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     with when("+python-bindings"):
         extends("python")
         requires("%clang", "%apple-clang", policy="one_of")
-        depends_on("chrpath", type=("build",))
 
     depends_on("python@3.7:")
+    depends_on("chrpath", type=("build",))
     depends_on("cmake@3.16:")
 
     # ensure we can map the spack compiler name to one of the ones we recognize
