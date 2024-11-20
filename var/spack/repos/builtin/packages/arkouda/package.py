@@ -98,6 +98,3 @@ class Arkouda(MakefilePackage):
         if not self.spec.satisfies("^chapel comm=none"):
             install("arkouda_server_real", prefix.bin)
         install_tree(self.stage.source_path, prefix)
-
-    def setup_build_environment(self, env):
-        env.set("CHPL_FLAGS", "--no-compiler-driver")
