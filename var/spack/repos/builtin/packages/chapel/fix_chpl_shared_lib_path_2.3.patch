@@ -1,20 +1,30 @@
 diff --git a/tools/chapel-py/setup.py b/tools/chapel-py/setup.py
-index 30c2708724..fd2fe54e12 100644
+index 30c2708724..52bb922534 100644
 --- a/tools/chapel-py/setup.py
 +++ b/tools/chapel-py/setup.py
-@@ -25,6 +25,7 @@ import sys
- import glob
+@@ -46,7 +46,24 @@ host_cc = str(chpl_variables.get("CHPL_HOST_CC"))
+ host_cxx = str(chpl_variables.get("CHPL_HOST_CXX"))
 
- chpl_home = str(os.getenv("CHPL_HOME"))
-+chpl_lib_install = str(os.getenv("CHPL_SPACK_LIB_INSTALL"))
- chpl_printchplenv = os.path.join(chpl_home, "util", "printchplenv")
- chpl_variables_lines = (
-     subprocess.check_output(
-@@ -66,6 +67,7 @@ LDFLAGS += [
-     "-L{}".format(chpl_lib_path),
-     "-Wl,-rpath,{}".format(chpl_lib_path),
-     "-lChplFrontendShared",
-+    "-Wl,-rpath,{}".format(chpl_lib_install),
- ]
+ host_bin_subdir = str(chpl_variables.get("CHPL_HOST_BIN_SUBDIR"))
+-chpl_lib_path = os.path.join(chpl_home, "lib", "compiler", host_bin_subdir)
++
++# Add the chplenv dir to the python path.
++chplenv_dir = os.path.join(os.path.dirname(__file__), '../../util/chplenv')
++sys.path.insert(0, os.path.abspath(chplenv_dir))
++
++import chpl_home_utils
++
++# construct the chpl_lib_path from chpl_home, or use the configured-prefix if it exists
++if chpl_home_utils.get_prefix_install_prefix() is None:
++    chpl_lib_path = os.path.join(chpl_home, "lib", "compiler", host_bin_subdir)
++else:
++    chpl_lib_path = os.path.join(
++        chpl_home_utils.get_prefix_install_prefix(),
++        "lib",
++        "chapel",
++        chpl_home_utils.get_version_from_install(),
++        "compiler"
++    )
 
- if str(chpl_variables.get("CHPL_SANITIZE")) == "address":
+ CXXFLAGS = []
+ if have_llvm and have_llvm != "none":

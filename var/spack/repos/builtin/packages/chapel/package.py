@@ -70,7 +70,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("cxx", type="build")  # generated
 
     patch("fix_spack_cc_wrapper_in_cray_prgenv.patch", when="@2.0.0:")
-    patch("fix_chpl_shared_lib_path.patch", when="@:2.2")
+    patch("fix_chpl_shared_lib_path.patch", when="@2.1:2.2")
     patch("fix_chpl_shared_lib_path_2.3.patch", when="@2.3:")
     patch("fix_chpl_line_length.patch")
 
