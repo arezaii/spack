@@ -26,6 +26,12 @@ class PyArkouda(PythonPackage):
     version("master", branch="master")
 
     version(
+        "2025.01.13", sha256="bb53bab92fedf43a47aadd9195eeedebe5f806d85887fa508fb5c69f2a4544ea"
+    )
+    version(
+        "2024.12.06", sha256="92ca11319a9fdeeb8879afbd1e0c9c1b1d14aa2496781c1481598963d3c37b46"
+    )
+    version(
         "2024.10.02", sha256="00671a89a08be57ff90a94052f69bfc6fe793f7b50cf9195dd7ee794d6d13f23"
     )
     version(
@@ -35,21 +41,34 @@ class PyArkouda(PythonPackage):
     variant("dev", default=False, description="Include arkouda developer extras")
 
     depends_on("python@3.8:", type=("build", "run"), when="@:2024.06.21")
-    depends_on("python@3.9:3.12.3", type=("build", "run"), when="@2024.10.02:")
+    depends_on("python@3.9:3.12.3", type=("build", "run"), when="@2024.10.02:2025.01.13")
+    depends_on("python@3.9:", type=("build", "run"), when="@2025.01.14:")
+
     depends_on("py-setuptools", type="build")
-    depends_on("py-numpy@1.24.1:1.99", type=("build", "run"))
+    depends_on("py-numpy@1.24.1:1.99", type=("build", "run"), when="@2024.06.21:2025.01.13")
+    depends_on("py-numpy@2.0:", type=("build", "run"), when="@2025.01.14:")
+
     depends_on("py-pandas@1.4.0:", type=("build", "run"))
     conflicts("^py-pandas@2.2.0", msg="arkouda client not compatible with pandas 2.2.0")
 
     depends_on("py-pyarrow", type=("build", "run"))
     depends_on("py-pyzmq@20:", type=("build", "run"))
-    depends_on("py-scipy@:1.13.1", type=("build", "run"), when="@2024.06.21:")
+    depends_on("py-scipy@:1.13.1", type=("build", "run"), when="@2024.06.21:2025.01.13")
+    depends_on("py-scipy", type=("build", "run"), when="@2025.01.14:")
+
     depends_on("py-tables@3.7.0: +lzo +bzip2", type=("build", "run"), when="@:2024.06.21")
-    depends_on("py-tables@3.8.0: +lzo +bzip2", type=("build", "run"), when="@2024.10.02:")
+    depends_on(
+        "py-tables@3.8.0: +lzo +bzip2", type=("build", "run"), when="@2024.10.02:2025.01.13"
+    )
+    depends_on("py-tables@3.10.0: +lzo +bzip2", type=("build", "run"), when="@2025.01.14:")
+
     depends_on("py-h5py@3.7.0:", type=("build", "run"))
     depends_on("py-matplotlib@3.3.2:", type=("build", "run"))
     depends_on("py-versioneer", type=("build"))
     depends_on("py-pyfiglet", type=("build", "run"))
     depends_on("py-typeguard@2.10:2.12", type=("build", "run"))
+
     depends_on("py-tabulate", type=("build", "run"))
+    depends_on("py-cloudpickle", type=("build", "run"), when="@2025.01.14:")
+
     depends_on("py-pytest@6.0:", type=("build", "run"), when="@2024.10.02")
