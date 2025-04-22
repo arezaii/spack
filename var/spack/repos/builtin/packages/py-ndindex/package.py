@@ -13,6 +13,8 @@ class PyNdindex(PythonPackage):
 
     license("MIT")
 
+    version("1.9.2", sha256="b8658a06e52d6c47445c2ec11d292e1d52c3af259214c8b52e3a1aab733daa72")
     version("1.7", sha256="bf9bd0b76eeada1c8275e04091f8291869ed2b373b7af48e56faf7579fd2efd2")
 
     depends_on("py-setuptools", type="build")
+    depends_on("py-cython", type=("build", "run"), when="@1.9.2:")
